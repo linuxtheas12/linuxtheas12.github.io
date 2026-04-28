@@ -1,11 +1,467 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copics</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Copics | Smart OCR Extension</title>
+  <meta name="description" content="Copics is a browser extension that captures text from videos and screenshots in one click." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #9fd9d3;
+      --surface: #c9dfa6;
+      --surface-soft: #eaf4dd;
+      --brand: #8d124f;
+      --brand-2: #1ea675;
+      --ink: #112233;
+      --ink-soft: #3c4a57;
+      --line: #7cc4be;
+      --shadow: 0 14px 32px rgba(16, 33, 34, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, #cfead0 0%, transparent 40%),
+        radial-gradient(circle at 90% 100%, #83c4bd 0%, transparent 40%),
+        var(--bg);
+      line-height: 1.55;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      line-height: 1.12;
+    }
+
+    a { color: inherit; }
+
+    .wrap {
+      width: min(1120px, 92vw);
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 48px 0 28px;
+      display: grid;
+      gap: 24px;
+      grid-template-columns: 1.1fr 0.9fr;
+      align-items: center;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #ffffffb8;
+      border: 1px solid #ffffff;
+      padding: 8px 14px;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    .brand img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 4vw, 4rem);
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .lead {
+      font-size: clamp(1rem, 1.7vw, 1.2rem);
+      color: var(--ink-soft);
+      max-width: 58ch;
+      margin-bottom: 24px;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 12px;
+      padding: 12px 16px;
+      text-decoration: none;
+      font-weight: 600;
+      border: 1px solid transparent;
+      transition: transform 160ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(9, 34, 36, 0.15);
+    }
+
+    .btn.primary {
+      background: linear-gradient(155deg, #a8185f, var(--brand));
+      color: #fff;
+    }
+
+    .btn.secondary {
+      background: #f9fdf8;
+      border-color: #d6e6c6;
+      color: var(--ink);
+    }
+
+    .hero-card {
+      background: #ffffffb8;
+      border: 1px solid #fff;
+      border-radius: 22px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      transform: rotate(-1.2deg);
+    }
+
+    .hero-card img {
+      width: 100%;
+      display: block;
+      border-radius: 14px;
+      border: 1px solid #d7dce0;
+    }
+
+    section {
+      margin: 28px 0;
+      background: #ffffffcf;
+      border-radius: 22px;
+      padding: 28px;
+      border: 1px solid #fff;
+      box-shadow: var(--shadow);
+    }
+
+    section h2 {
+      font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: var(--ink-soft);
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+
+    .shots {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .device {
+      background: #f7fbf7;
+      border: 1px solid #d8ece0;
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .device h3 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: #3a5154;
+    }
+
+    .frame {
+      overflow: hidden;
+      background: #121821;
+      box-shadow: inset 0 0 0 1px #0f1e2f;
+    }
+
+    .frame img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .frame.desktop {
+      border-radius: 14px;
+      border: 8px solid #2b3138;
+    }
+
+    .frame.browser {
+      border-radius: 14px;
+      border: 8px solid #1f262d;
+      position: relative;
+      padding-top: 20px;
+    }
+
+    .frame.browser::before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      width: 36px;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #f97373 0 33%, #f4c95f 33% 66%, #52cd79 66%);
+    }
+
+    .frame.phone {
+      border: 8px solid #171717;
+      border-radius: 34px;
+      aspect-ratio: 9 / 16;
+    }
+
+    .frame.phone img,
+    .frame.tablet img {
+      height: 100%;
+    }
+
+    .frame.tablet {
+      border: 8px solid #23292f;
+      border-radius: 22px;
+      aspect-ratio: 4 / 3;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .features li {
+      background: var(--surface-soft);
+      border: 1px solid #d4e6c8;
+      border-radius: 14px;
+      padding: 14px;
+      font-weight: 500;
+    }
+
+    .download-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: #f6fbf3;
+      border: 1px solid #d6e7c8;
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .platforms {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      color: #2e474f;
+      font-weight: 600;
+    }
+
+    ol {
+      margin: 10px 0 0 20px;
+      padding: 0;
+    }
+
+    .contact {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .contact-box {
+      background: #f4faf6;
+      border: 1px solid #d3e5d0;
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid #b8d2c0;
+      font: inherit;
+      margin-top: 6px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+
+    .mail {
+      font-weight: 700;
+      color: #17434e;
+    }
+
+    footer {
+      text-align: center;
+      color: #25414c;
+      padding: 8px 0 36px;
+      font-size: 0.95rem;
+    }
+
+    .reveal {
+      animation: rise 520ms ease both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .download-grid,
+      .contact {
+        grid-template-columns: 1fr;
+      }
+
+      .shots,
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-card {
+        transform: none;
+      }
+    }
+  </style>
 </head>
-  <body>
-    <h1>Hello World</h1>
-  </body>
+<body>
+  <div class="wrap">
+    <header class="hero reveal">
+      <div>
+        <div class="brand">
+          <img src="logo.svg" alt="Copics logo" />
+          <strong>Copics</strong>
+        </div>
+        <h1>Extract text from any video frame in one click.</h1>
+        <p class="lead">
+          Copics is a practical OCR browser extension for creators, students, and professionals. Capture text directly from video frames or screenshot areas, then copy and use it instantly.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="https://github.com/linuxtheas12/Copics" target="_blank" rel="noopener noreferrer">⬇ Download / Source</a>
+          <a class="btn secondary" href="#guide">📘 Installation Guide</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <img src="prvy.png" alt="Copics extension popup" />
+      </div>
+    </header>
+
+    <section class="reveal">
+      <h2>Product Screens in Device Frames</h2>
+      <p class="muted">Real screenshots of Copics placed into browser, desktop, tablet, and mobile-style mock frames.</p>
+      <div class="shots">
+        <article class="device">
+          <h3>🖥 Browser Window</h3>
+          <div class="frame browser">
+            <img src="screenshot-1.png" alt="Copics capture dialog in browser" />
+          </div>
+        </article>
+
+        <article class="device">
+          <h3>💻 Desktop Workspace</h3>
+          <div class="frame desktop">
+            <img src="screenshot-3.png" alt="Copics extracted text from a video frame" />
+          </div>
+        </article>
+
+        <article class="device">
+          <h3>📱 Mobile Preview</h3>
+          <div class="frame phone">
+            <img src="screenshot-2.png" alt="Copics compact UI preview" />
+          </div>
+        </article>
+
+        <article class="device">
+          <h3>📟 Tablet-Like Card View</h3>
+          <div class="frame tablet">
+            <img src="prvy.png" alt="Copics popup controls" />
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="reveal">
+      <h2>Core Features</h2>
+      <ul class="features">
+        <li>🎯 One-click area selection for fast OCR capture</li>
+        <li>🧠 OCR engine powered by Tesseract for reliable extraction</li>
+        <li>📋 Instant copy-to-clipboard workflow for productivity</li>
+        <li>🔁 Quick page reload and rerun controls</li>
+        <li>🪶 Lightweight extension UX focused on speed</li>
+        <li>🔒 Local workflow with no forced account sign-up</li>
+      </ul>
+    </section>
+
+    <section class="reveal" id="guide">
+      <h2>Download & Installation</h2>
+      <div class="download-grid">
+        <div class="panel">
+          <h3>Get Copics</h3>
+          <p>Copics is distributed through GitHub source right now.</p>
+          <a class="btn primary" href="https://github.com/linuxtheas12/Copics" target="_blank" rel="noopener noreferrer">Open GitHub Repository</a>
+          <div class="platforms">🌐 Chrome · 🧩 Chromium Extensions · 💻 Desktop Browsers</div>
+        </div>
+
+        <div class="panel">
+          <h3>Developer Mode Setup (Chrome/Chromium)</h3>
+          <ol>
+            <li>Download or clone the repository from GitHub.</li>
+            <li>Open `chrome://extensions/` in your browser.</li>
+            <li>Enable <strong>Developer mode</strong> in the top-right corner.</li>
+            <li>Click <strong>Load unpacked</strong> and select this project folder.</li>
+            <li>Pin Copics in your toolbar and click <strong>Select Area</strong> to start.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="reveal" id="contact">
+      <h2>Contact the Developer</h2>
+      <div class="contact">
+        <div class="contact-box">
+          <p>For collaboration, support, or media requests:</p>
+          <p class="mail">linux.theas@gmail.com</p>
+          <a class="btn secondary" href="mailto:linux.theas@gmail.com?subject=Copics%20Inquiry">✉ Send Email</a>
+        </div>
+
+        <form class="contact-box" id="contactForm">
+          <label for="name">Your name</label>
+          <input id="name" name="name" type="text" placeholder="John Doe" required />
+
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="4" placeholder="How can we help?" required></textarea>
+
+          <button class="btn primary" type="submit">Send via Email</button>
+        </form>
+      </div>
+    </section>
+
+    <footer>
+      <p>Copics © 2026 | OCR browser extension product page</p>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('contactForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const message = document.getElementById('message').value.trim();
+      const subject = encodeURIComponent('Copics Contact Form Message');
+      const body = encodeURIComponent('Name: ' + name + '\n\nMessage:\n' + message);
+      window.location.href = 'mailto:linux.theas@gmail.com?subject=' + subject + '&body=' + body;
+    });
+  </script>
+</body>
 </html>
