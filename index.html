@@ -188,6 +188,16 @@
       object-fit: cover;
     }
 
+    .zoomable {
+      cursor: zoom-in;
+      transition: transform 180ms ease, filter 180ms ease;
+    }
+
+    .zoomable:hover {
+      transform: scale(1.01);
+      filter: saturate(1.05);
+    }
+
     .frame.desktop {
       border-radius: 14px;
       border: 8px solid #2b3138;
@@ -226,6 +236,56 @@
       border: 8px solid #23292f;
       border-radius: 22px;
       aspect-ratio: 4 / 3;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 18, 27, 0.86);
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 180ms ease, visibility 180ms ease;
+      z-index: 9999;
+    }
+
+    .lightbox.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .lightbox-content {
+      position: relative;
+      max-width: min(1200px, 95vw);
+      max-height: 90vh;
+      width: 100%;
+    }
+
+    .lightbox img {
+      width: 100%;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 16px;
+      border: 1px solid #5f7483;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+      background: #0f1d28;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: -12px;
+      right: -12px;
+      border: 0;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #0e2633;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
     }
 
     .features {
@@ -359,34 +419,34 @@
     </header>
 
     <section class="reveal">
-      <h2>Product Screens in Device Frames</h2>
-      <p class="muted">Real screenshots of Copics placed into browser, desktop, tablet, and mobile-style mock frames.</p>
+      <h2>Product Screens in Browser Frames</h2>
+      <p class="muted">All product previews are shown as browser screenshots. Click any image to zoom.</p>
       <div class="shots">
         <article class="device">
-          <h3>🖥 Browser Window</h3>
+          <h3>🎯 Custom area selection and instant extraction</h3>
           <div class="frame browser">
-            <img src="screenshot-1.png" alt="Copics capture dialog in browser" />
+            <img class="zoomable" src="screenshot-1.png" alt="Výber vlastného poľa a následná extrakcia textu v Copics" />
           </div>
         </article>
 
         <article class="device">
-          <h3>💻 Desktop Workspace</h3>
-          <div class="frame desktop">
-            <img src="screenshot-3.png" alt="Copics extracted text from a video frame" />
+          <h3>🧠 OCR button extraction with final text output</h3>
+          <div class="frame browser">
+            <img class="zoomable" src="screenshot-3.png" alt="Extrakcia cez OCR button a výsledný text v Copics" />
           </div>
         </article>
 
         <article class="device">
-          <h3>📱 Mobile Preview</h3>
-          <div class="frame phone">
-            <img src="screenshot-2.png" alt="Copics compact UI preview" />
+          <h3>🧩 Popup inside the Extensions panel</h3>
+          <div class="frame browser">
+            <img class="zoomable" src="screenshot-2.png" alt="Copics popup medzi rozšíreniami v prehliadači" />
           </div>
         </article>
 
         <article class="device">
-          <h3>📟 Tablet-Like Card View</h3>
-          <div class="frame tablet">
-            <img src="prvy.png" alt="Copics popup controls" />
+          <h3>▶️ OCR button in the YouTube control bar</h3>
+          <div class="frame browser">
+            <img class="zoomable" src="prvy.png" alt="Ukážka OCR buttonu v YouTube lište medzi prehrávacími ovládaniami" />
           </div>
         </article>
       </div>
@@ -433,7 +493,6 @@
         <div class="contact-box">
           <p>For collaboration, support, or media requests:</p>
           <p class="mail">linux.theas@gmail.com</p>
-          <a class="btn secondary" href="mailto:linux.theas@gmail.com?subject=Copics%20Inquiry">✉ Send Email</a>
         </div>
 
         <form class="contact-box" id="contactForm">
@@ -453,6 +512,13 @@
     </footer>
   </div>
 
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-content">
+      <button class="lightbox-close" id="lightboxClose" aria-label="Close image preview">×</button>
+      <img id="lightboxImage" src="" alt="Expanded product screenshot" />
+    </div>
+  </div>
+
   <script>
     document.getElementById('contactForm').addEventListener('submit', function (event) {
       event.preventDefault();
@@ -461,6 +527,34 @@
       const subject = encodeURIComponent('Copics Contact Form Message');
       const body = encodeURIComponent('Name: ' + name + '\n\nMessage:\n' + message);
       window.location.href = 'mailto:linux.theas@gmail.com?subject=' + subject + '&body=' + body;
+    });
+
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImage = document.getElementById('lightboxImage');
+    const lightboxClose = document.getElementById('lightboxClose');
+    const zoomableImages = document.querySelectorAll('.zoomable');
+
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      lightboxImage.src = '';
+    }
+
+    zoomableImages.forEach((img) => {
+      img.addEventListener('click', () => {
+        lightboxImage.src = img.src;
+        lightboxImage.alt = img.alt;
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden', 'false');
+      });
+    });
+
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', (event) => {
+      if (event.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeLightbox();
     });
   </script>
 </body>
