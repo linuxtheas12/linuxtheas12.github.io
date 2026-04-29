@@ -369,6 +369,27 @@
       font-size: 0.95rem;
     }
 
+    .legal {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-weight: 600;
+    }
+
+    .legal a {
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #b7d8c3;
+      background: #f6fcf8;
+    }
+
+    .legal a:hover {
+      background: #eef8f2;
+    }
+
     .reveal {
       animation: rise 520ms ease both;
     }
@@ -509,6 +530,10 @@
 
     <footer>
       <p>Copics © 2026 | OCR browser extension product page</p>
+      <div class="legal">
+        <a href="privacy-policy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+        <a href="terms-and-conditions.html" target="_blank" rel="noopener noreferrer">Terms & Conditions</a>
+      </div>
     </footer>
   </div>
 
